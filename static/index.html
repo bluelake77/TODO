@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TODO</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #667eea;
+      --purple-dark: #764ba2;
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --border: #edf0f4;
+      --text: #2d3748;
+      --muted: #a0aec0;
+      --danger: #e53e3e;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 80px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 200;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 32px;
+      user-select: none;
+    }
+
+    .quick-links {
+      width: 100%;
+      max-width: 580px;
+      display: flex;
+      justify-content: flex-end;
+      margin: -10px 0 14px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: #03c75a;
+      color: #fff;
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 14px rgba(3, 199, 90, 0.28);
+    }
+    .btn-link:hover { opacity: .9; }
+    .btn-link:active { transform: scale(.97); }
+
+    .card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(102,126,234,.12), 0 2px 8px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+
+    /* ── Input ── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      padding: 20px 20px 16px;
+    }
+
+    #newTodo {
+      flex: 1;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+      background: #fafbff;
+    }
+    #newTodo::placeholder { color: var(--muted); }
+    #newTodo:focus { border-color: var(--purple); background: #fff; }
+
+    .btn-add {
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { opacity: .88; }
+    .btn-add:active { transform: scale(.96); }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 6px;
+      padding: 0 20px 14px;
+    }
+
+    .filter-btn {
+      padding: 6px 18px;
+      border: none;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: background .18s, color .18s;
+    }
+    .filter-btn.active {
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      color: #fff;
+    }
+    .filter-btn:not(.active):hover { background: var(--bg); color: var(--text); }
+
+    /* ── List ── */
+    .divider { height: 1px; background: var(--border); }
+
+    .todo-list { list-style: none; }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+      animation: fadeIn .2s ease;
+    }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-item:hover { background: #fafbff; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Circle checkbox */
+    .check-ring {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #d0d5dd;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .2s, background .2s;
+    }
+    .check-ring.done {
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      border-color: transparent;
+    }
+    .check-ring.done::after {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 10px;
+      border: 2.5px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    /* Editable title */
+    .todo-title {
+      flex: 1;
+      font-size: .97rem;
+      color: var(--text);
+      outline: none;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      padding: 4px 8px;
+      transition: border-color .18s, background .18s;
+      cursor: text;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .todo-title.done {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .todo-title:focus {
+      border-color: var(--purple);
+      background: #fafbff;
+      cursor: text;
+    }
+
+    /* Delete */
+    .btn-del {
+      background: none;
+      border: none;
+      color: #d0d5dd;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: color .18s, background .18s, opacity .18s;
+      line-height: 1;
+    }
+    .todo-item:hover .btn-del { opacity: 1; }
+    .todo-item:focus-within .btn-del { opacity: 1; }
+    .btn-del:hover { color: var(--danger); background: #fff5f5; }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      font-size: .82rem;
+      color: var(--muted);
+    }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      font-size: .82rem;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 8px;
+      transition: color .18s, background .18s;
+    }
+    .btn-clear:hover { color: var(--danger); background: #fff5f5; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 56px 20px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 2.8rem; margin-bottom: 12px; }
+    .empty p { font-size: .92rem; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #2d3748;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 100px;
+      font-size: .87rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <h1>Todo</h1>
+
+  <div class="quick-links">
+    <a class="btn-link" href="https://www.naver.com" target="_blank" rel="noopener noreferrer">네이버 바로가기</a>
+  </div>
+
+  <div class="card">
+    <div class="input-row">
+      <input id="newTodo" type="text" placeholder="새 할 일을 입력하세요..." value="유가 상승으로 인한 한-일 긴급 유휴 할증료 CRS(Cost Recovery Surcharge)신설 안내" maxlength="200" autocomplete="off" />
+      <button class="btn-add" onclick="addTodo()">추가</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all"       onclick="setFilter('all')">전체</button>
+      <button class="filter-btn"        data-filter="active"    onclick="setFilter('active')">진행 중</button>
+      <button class="filter-btn"        data-filter="completed" onclick="setFilter('completed')">완료</button>
+    </div>
+
+    <div class="divider"></div>
+    <ul class="todo-list" id="todoList"></ul>
+
+    <div class="footer">
+      <span id="countLabel">0개 남음</span>
+      <button class="btn-clear" onclick="clearCompleted()">완료 항목 삭제</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let filter = 'all';
+
+    // ── API helpers ──────────────────────────────────────────────────────────
+    async function request(method, path, body) {
+      const res = await fetch('/api/todos' + path, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Error' }));
+        throw new Error(err.detail ?? 'Request failed');
+      }
+      return res.status === 204 ? null : res.json();
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    async function load() {
+      const qs = filter === 'all' ? '' : `?completed=${filter === 'completed'}`;
+      const todos = await request('GET', qs).catch(showError);
+      if (!todos) return;
+      render(todos);
+    }
+
+    function render(todos) {
+      const list = document.getElementById('todoList');
+      const active = todos.filter(t => !t.completed).length;
+      document.getElementById('countLabel').textContent = `${active}개 남음`;
+
+      if (!todos.length) {
+        list.innerHTML = `
+          <li class="empty">
+            <div class="empty-icon">📭</div>
+            <p>할 일이 없습니다</p>
+          </li>`;
+        return;
+      }
+
+      list.innerHTML = todos.map(t => `
+        <li class="todo-item" data-id="${t.id}">
+          <div class="check-ring ${t.completed ? 'done' : ''}"
+               onclick="toggle(${t.id}, ${!t.completed})"
+               title="${t.completed ? '완료 취소' : '완료 표시'}"></div>
+          <span class="todo-title ${t.completed ? 'done' : ''}"
+                contenteditable="true"
+                spellcheck="false"
+                data-orig="${esc(t.title)}"
+                onkeydown="handleTitleKey(event, ${t.id})"
+                onblur="saveTitle(event, ${t.id})"
+          >${esc(t.title)}</span>
+          <button class="btn-del" onclick="del(${t.id})" title="삭제">✕</button>
+        </li>
+      `).join('');
+    }
+
+    // ── Actions ──────────────────────────────────────────────────────────────
+    async function addTodo() {
+      const input = document.getElementById('newTodo');
+      const title = input.value.trim();
+      if (!title) { input.focus(); return; }
+      await request('POST', '', { title }).catch(showError);
+      input.value = '';
+      input.focus();
+      load();
+    }
+
+    async function toggle(id, completed) {
+      await request('PUT', `/${id}`, { completed }).catch(showError);
+      load();
+    }
+
+    async function del(id) {
+      await request('DELETE', `/${id}`).catch(showError);
+      toast('삭제되었습니다');
+      load();
+    }
+
+    async function clearCompleted() {
+      const done = await request('GET', '?completed=true').catch(showError);
+      if (!done?.length) return;
+      await Promise.all(done.map(t => request('DELETE', `/${t.id}`))).catch(showError);
+      toast(`${done.length}개 삭제되었습니다`);
+      load();
+    }
+
+    function handleTitleKey(e, id) {
+      if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+      if (e.key === 'Escape') {
+        e.target.textContent = e.target.dataset.orig;
+        e.target.blur();
+      }
+    }
+
+    async function saveTitle(e, id) {
+      const el = e.target;
+      const title = el.textContent.trim();
+      if (!title || title === el.dataset.orig) {
+        el.textContent = el.dataset.orig; // restore if blank
+        return;
+      }
+      await request('PUT', `/${id}`, { title }).catch(err => {
+        el.textContent = el.dataset.orig;
+        showError(err);
+      });
+      load();
+    }
+
+    // ── Filter ───────────────────────────────────────────────────────────────
+    function setFilter(f) {
+      filter = f;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === f);
+      });
+      load();
+    }
+
+    // ── Utilities ────────────────────────────────────────────────────────────
+    function esc(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    let toastTimer;
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    function showError(err) { toast('오류: ' + (err?.message ?? err)); }
+
+    // ── Bootstrap ────────────────────────────────────────────────────────────
+    document.getElementById('newTodo').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTodo();
+    });
+
+    load();
+  </script>
+</body>
+</html>

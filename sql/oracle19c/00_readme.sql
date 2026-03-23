@@ -1,0 +1,17 @@
+-- Oracle 19c setup scripts for TODO app
+--
+-- Run in this order:
+-- 0) 05_app_user_grants.sql (optional, DBA only)
+-- 1) 01_create_tables.sql
+-- 2) 02_constraints_indexes.sql
+-- 3) 03_triggers.sql
+-- 4) 04_seed_data.sql (optional)
+--
+-- Rollback (drop objects):
+-- - 99_drop_all.sql
+--
+-- Notes:
+-- - Connect using the app schema user (not SYS).
+-- - This set assumes Oracle 19c and uses IDENTITY columns.
+-- - COMPLETED is stored as NUMBER(1): 0=false, 1=true.
+-- - DATE/TIME columns use TIMESTAMP(6).
